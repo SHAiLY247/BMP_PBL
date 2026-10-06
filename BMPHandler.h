@@ -1,5 +1,8 @@
 #ifndef BMPHANDLER_H
 #define BMPHANDLER_H
+#include <string>
+#include <vector>
+#pragma pack (push,1)
 
 struct BMPFileHeader{
     unsigned short filetype;
@@ -24,11 +27,14 @@ struct BMPInfoHeader{
 
 };
 
-
+#pragma pack(pop)
 
 struct pixel{
      unsigned char red;
      unsigned char blue;
      unsigned char green;
 };
+
+bool loadBMP(const std::string& filePath, std::vector<std::vector<pixel>>& pixels, BMPFileHeader& fileHeader,BMPInfoHeader& infoHeader);
+
 #endif

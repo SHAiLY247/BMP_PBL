@@ -4,14 +4,18 @@ using namespace std;
  
 int main()
 {
-    pixel p;
-    p.red=255;
-    p.blue=0;
-    p.green=0;
+  vector<vector<pixel>> pixels;
+  BMPFileHeader fileheader;
+  BMPInfoHeader infoheader;
+  bool result=loadBMP("input.bmp",pixels,fileheader,infoheader);
 
-    cout<<"pixel created succesfully "<<endl;
-    BMPFileHeader fileHeader;
-    BMPInfoHeader infoHeader;
-    cout<<"Bmp structures created successfully";
+  if(result)
+  {
+    cout<<"bmp opened successfully"<<endl;
+
+  }
+  else{
+    cout<<"could not open bmp"<<endl;
+  }
     return 0;
 }

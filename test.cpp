@@ -1,5 +1,6 @@
 #include <iostream>
 #include "BMPhandler.h"
+#include "brightnessfilter.h"
 using namespace std;
  
 int main()
@@ -24,7 +25,14 @@ std::cout << "First pixel's Red value: "
   else{
     cout<<"could not open bmp"<<endl;
   }
-  if (saveBMP("output.bmp", pixels, fileheader, infoheader))
+
+  BrightnessFilter brightness(60);
+
+brightness.apply(pixels);
+
+std::cout << "Brightness filter applied!\n";
+
+  if (saveBMP("bright_output.bmp", pixels, fileheader, infoheader))
 {
     std::cout << "BMP saved successfully!\n";
 }

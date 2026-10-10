@@ -1,6 +1,7 @@
 #include <iostream>
 #include "BMPhandler.h"
 #include "brightnessfilter.h"
+#include "contrastfilter.h"
 using namespace std;
  
 int main()
@@ -26,13 +27,18 @@ std::cout << "First pixel's Red value: "
     cout<<"could not open bmp"<<endl;
   }
 
-  BrightnessFilter brightness(60);
+ // BrightnessFilter brightness(60);
 
-brightness.apply(pixels);
+//brightness.apply(pixels);
 
-std::cout << "Brightness filter applied!\n";
+//std::cout << "Brightness filter applied!\n";
+ContrastFilter contrast(2.5);
 
-  if (saveBMP("bright_output.bmp", pixels, fileheader, infoheader))
+contrast.apply(pixels);
+
+std::cout << "Contrast filter applied!\n";
+
+  if (saveBMP("contrast_output.bmp", pixels, fileheader, infoheader))
 {
     std::cout << "BMP saved successfully!\n";
 }

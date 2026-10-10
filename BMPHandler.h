@@ -36,5 +36,10 @@ struct pixel{
 };
 
 bool loadBMP(const std::string& filePath, std::vector<std::vector<pixel>>& pixels, BMPFileHeader& fileHeader,BMPInfoHeader& infoHeader);
-
+bool saveBMP(
+    const std::string& filePath,
+    const std::vector<std::vector<pixel>>& pixels,
+    BMPFileHeader fileHeader,
+    BMPInfoHeader infoHeader
+);
 #endif

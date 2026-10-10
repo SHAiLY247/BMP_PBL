@@ -24,5 +24,13 @@ std::cout << "First pixel's Red value: "
   else{
     cout<<"could not open bmp"<<endl;
   }
+  if (saveBMP("output.bmp", pixels, fileheader, infoheader))
+{
+    std::cout << "BMP saved successfully!\n";
+}
+else
+{
+    std::cout << "Failed to save BMP.\n";
+}
     return 0;
 }

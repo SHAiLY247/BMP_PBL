@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+threshold_test.bmp
+bright_output.bmp
+contrast_output.bmp

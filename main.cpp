@@ -1,121 +1,185 @@
 #include <iostream>
+#include <string>
+#include <limits>
+#include <memory>
+#include <vector>
+
+#include "BMPHandler.h"
+#include "brightnessfilter.h"
+#include "contrastfilter.h"
+#include "FilterPipeline.h"
+#include "UndoStack.h"
+#include "Threshold.h"
+
 using namespace std;
 
-int main()
-{
+int main() {
+    vector<vector<pixel>> pixels;
+    BMPFileHeader fileHeader{};
+    BMPInfoHeader infoHeader{};
+    UndoStack undoStack(5);
+
+    bool imageLoaded = false;
+    string filename;
+
     int choice;
 
-    while (true)
-    {
+    while (true) {
         cout << "\n===============================================\n";
         cout << "   BMP IMAGE PROCESSING AND PIXEL ANALYSIS\n";
         cout << "===============================================\n";
-
         cout << "1. Load BMP Image\n";
         cout << "2. Apply Filter\n";
         cout << "3. Undo Last Operation\n";
         cout << "4. Threshold Image\n";
-        cout << "5. Analyze Pixel Regions\n";
+        cout << "5. Analyze Pixel Regions (Phase III)\n";
         cout << "6. Save Image\n";
         cout << "7. Exit\n";
-
         cout << "\nEnter your choice: ";
-        if (!(cin >> choice))
-        {
-           cin.clear();
-           cin.ignore(10000, '\n');
-           cout << "Invalid input. Please enter a number.\n";
-           continue;
-        } 
 
-        switch (choice)
-        {
-            case 1:
-                cout << "\nBMP loading will be integrated here.\n";
-                break;
+        if (!(cin >> choice)) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Invalid input.\n";
+            continue;
+        }
 
-            case 2:
-            {
-                int filterChoice;
+        if (choice == 7) {
+            cout << "Exiting program.\n";
+            break;
+        }
 
-                cout << "\n========== FILTER OPTIONS ==========\n";
-                cout << "1. Grayscale\n";
-                cout << "2. Brightness\n";
-                cout << "3. Contrast\n";
-                cout << "4. Inversion\n";
-                cout << "5. Sepia\n";
-                cout << "6. RGB Channel Manipulation\n";
-                cout << "7. Back to Main Menu\n";
+        if (choice == 1) {
+            cout << "Enter BMP filename (e.g. input.bmp): ";
+            cin >> filename;
 
-                cout << "\nEnter your choice: ";
-                if (!(cin >> filterChoice))
-                {
-                    cin.clear();
-                    cin.ignore(10000, '\n');
-
-                    cout << "Invalid input. Please enter a number.\n";
-                    break;
-                }
-
-                switch (filterChoice)
-                {
-                    case 1:
-                        cout << "\nGrayscale selected.\n";
-                        break;
-
-                    case 2:
-                        cout << "\nBrightness selected.\n";
-                        break;
-
-                    case 3:
-                        cout << "\nContrast selected.\n";
-                        break;
-
-                    case 4:
-                        cout << "\nInversion selected.\n";
-                        break;
-
-                    case 5:
-                        cout << "\nSepia selected.\n";
-                        break;
-
-                    case 6:
-                        cout << "\nRGB Channel Manipulation selected.\n";
-                        break;
-
-                    case 7:
-                        cout << "\nReturning to main menu...\n";
-                        break;
-
-                    default:
-                        cout << "\nInvalid filter choice. Please try again.\n";
-                }
-
-                break;
+            if (loadBMP(filename, pixels, fileHeader, infoHeader)) {
+                imageLoaded = true;
+                undoStack.clear();
+                cout << "BMP loaded successfully!\n";
+                cout << "Width: " << infoHeader.width
+                     << ", Height: " << infoHeader.height << '\n';
+            } else {
+                cout << "Could not load BMP. Check filename and format.\n";
+            }
+        }
+        else if (choice == 2) {
+            if (!imageLoaded) {
+                cout << "Load an image first.\n";
+                continue;
             }
 
-            case 3:
-                cout << "\nUndo operation will be here.\n";
-                break;
+            cout << "\n1. Brightness\n";
+            cout << "2. Contrast\n";
+            cout << "3. Back\n";
+            cout << "Choose filter: ";
 
-            case 4:
-                cout << "\nThresholding will be here.\n";
-                break;
+            int filterChoice;
+            if (!(cin >> filterChoice)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid input.\n";
+                continue;
+            }
 
-            case 5:
-                cout << "\nPixel region analysis will be here.\n";
-                break;
+            if (filterChoice == 1) {
+                int amount;
+                cout << "Brightness amount (-255 to 255): ";
+                if (!(cin >> amount) || amount < -255 || amount > 255) {
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    cout << "Invalid brightness amount.\n";
+                    continue;
+                }
 
-            case 6:
-                cout << "\nImage saving will be here.\n";
-                break;
+                undoStack.pushState(pixels);
+                BrightnessFilter filter(amount);
+                FilterPipeline pipeline;
+                pipeline.addFilter(&filter);
+                pipeline.executePipeline(pixels);
+                cout << "Brightness applied.\n";
+            }
+            else if (filterChoice == 2) {
+                double factor;
+                cout << "Contrast factor (e.g. 1.2): ";
+                if (!(cin >> factor) || factor < 0 || factor > 10) {
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    cout << "Invalid contrast factor.\n";
+                    continue;
+                }
 
-            case 7:
-                cout << "\nExiting program...\n";
-                return 0;
+                undoStack.pushState(pixels);
+                ContrastFilter filter(factor);
+                FilterPipeline pipeline;
+                pipeline.addFilter(&filter);
+                pipeline.executePipeline(pixels);
+                cout << "Contrast applied.\n";
+            }
+        }
+        else if (choice == 3) {
+            if (!imageLoaded) {
+                cout << "Load an image first.\n";
+            }
+            else if (undoStack.popState(pixels)) {
+                cout << "Undo successful.\n";
+            }
+            else {
+                cout << "Nothing to undo.\n";
+            }
+        }
+        else if (choice == 4) 
+        {
+          if (!imageLoaded) {
+          cout << "Load an image first.\n";
+          continue;
+         }
 
-            default:
-                cout << "\nInvalid choice. Please enter a number from 1 to 7.\n";
+        int thresholdValue;
+
+         cout << "Enter threshold (0-255): ";
+
+         if (!(cin >> thresholdValue) ||
+        thresholdValue < 0 ||
+        thresholdValue > 255) {
+
+        cin.clear();
+        cin.ignore(
+            numeric_limits<streamsize>::max(), '\n'
+        );
+
+        cout << "Invalid threshold. Enter a value from 0 to 255.\n";
+        continue;
+    }
+
+        undoStack.pushState(pixels);
+
+        Threshold thresholdFilter(thresholdValue);
+        thresholdFilter.apply(pixels);
+
+         cout << "Thresholding applied successfully!\n";
+     }
+        else if (choice == 5) {
+            cout << "Region analysis is planned for Phase III.\n";
+        }
+        else if (choice == 6) {
+            if (!imageLoaded) {
+                cout << "Load an image first.\n";
+                continue;
+            }
+
+            string output;
+            cout << "Enter output filename (e.g. output.bmp): ";
+            cin >> output;
+
+            if (saveBMP(output, pixels, fileHeader, infoHeader)) {
+                cout << "Image saved to " << output << '\n';
+            } else {
+                cout << "Failed to save image.\n";
+            }
+        }
+        else {
+            cout << "Invalid choice.\n";
         }
     }
 

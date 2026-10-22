@@ -101,7 +101,7 @@ int main() {
             }
             else if (filterChoice == 2) {
                 double factor;
-                cout << "Contrast factor (e.g. 1.2): ";
+                cout << "Contrast factor (0 < Contrast Factor < 2): ";
                 if (!(cin >> factor) || factor < 0 || factor > 10) {
                     cin.clear();
                     cin.ignore(numeric_limits<streamsize>::max(), '\n');

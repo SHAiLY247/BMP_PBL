@@ -2,6 +2,8 @@
 #include "BMPhandler.h"
 #include "brightnessfilter.h"
 #include "contrastfilter.h"
+#include "InversionFilter.h"
+#include "grayscalefilter.h"
 using namespace std;
  
 int main()
@@ -32,13 +34,26 @@ std::cout << "First pixel's Red value: "
 //brightness.apply(pixels);
 
 //std::cout << "Brightness filter applied!\n";
+/*
 ContrastFilter contrast(2.5);
 
 contrast.apply(pixels);
 
 std::cout << "Contrast filter applied!\n";
 
-  if (saveBMP("contrast_output.bmp", pixels, fileheader, infoheader))
+GrayscaleFilter grayscale;
+
+grayscale.apply(pixels);
+*/
+
+InversionFilter inversion;
+
+inversion.apply(pixels);
+
+saveBMP("inversion_output.bmp", pixels, fileheader, infoheader);
+std::cout << "Grayscale filter applied!\n";
+
+  if (saveBMP("inversion_output.bmp", pixels, fileheader, infoheader))
 {
     std::cout << "BMP saved successfully!\n";
 }

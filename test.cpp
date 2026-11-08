@@ -4,6 +4,7 @@
 #include "contrastfilter.h"
 #include "InversionFilter.h"
 #include "grayscalefilter.h"
+#include "SepiaFilter.h"
 using namespace std;
  
 int main()
@@ -29,31 +30,33 @@ std::cout << "First pixel's Red value: "
     cout<<"could not open bmp"<<endl;
   }
 
- // BrightnessFilter brightness(60);
+ //BrightnessFilter brightness(60);
 
 //brightness.apply(pixels);
 
 //std::cout << "Brightness filter applied!\n";
-/*
+
 ContrastFilter contrast(2.5);
 
 contrast.apply(pixels);
 
-std::cout << "Contrast filter applied!\n";
+/*std::cout << "Contrast filter applied!\n";
 
 GrayscaleFilter grayscale;
 
 grayscale.apply(pixels);
-*/
 
 InversionFilter inversion;
+inversion.apply(pixels);*/
+/*SepiaFilter sepia;
 
-inversion.apply(pixels);
+sepia.apply(pixels);
 
-saveBMP("inversion_output.bmp", pixels, fileheader, infoheader);
-std::cout << "Grayscale filter applied!\n";
+saveBMP("sepia_output.bmp", pixels, fileheader, infoheader);*/
+saveBMP("contrast.bmp", pixels, fileheader, infoheader);
+std::cout << "contrastvfilter applied!\n";
 
-  if (saveBMP("inversion_output.bmp", pixels, fileheader, infoheader))
+  if (saveBMP("contrast_output.bmp", pixels, fileheader, infoheader))
 {
     std::cout << "BMP saved successfully!\n";
 }

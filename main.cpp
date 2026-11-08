@@ -10,6 +10,7 @@
 #include "FilterPipeline.h"
 #include "UndoStack.h"
 #include "Threshold.h"
+#include "CropRotate.h"
 
 using namespace std;
 
@@ -32,9 +33,11 @@ int main() {
         cout << "2. Apply Filter\n";
         cout << "3. Undo Last Operation\n";
         cout << "4. Threshold Image\n";
-        cout << "5. Analyze Pixel Regions (Phase III)\n";
-        cout << "6. Save Image\n";
-        cout << "7. Exit\n";
+        cout << "5. Crop Image\n ";
+        cout << "6. Rotate Image\n";
+        cout << "7. Analyze Pixel Regions (Phase III)\n";
+        cout << "8. Save Image\n";
+        cout << "9. Exit\n";
         cout << "\nEnter your choice: ";
 
         if (!(cin >> choice)) {
@@ -44,7 +47,7 @@ int main() {
             continue;
         }
 
-        if (choice == 7) {
+        if (choice == 9) {
             cout << "Exiting program.\n";
             break;
         }
@@ -160,9 +163,65 @@ int main() {
          cout << "Thresholding applied successfully!\n";
      }
         else if (choice == 5) {
+    if (!imageLoaded) {
+        cout << "Load an image first.\n";
+        continue;
+    }
+
+    int startRow, startCol, cropWidth, cropHeight;
+
+    cout << "Enter starting row: ";
+    cin >> startRow;
+
+    cout << "Enter starting column: ";
+    cin >> startCol;
+
+    cout << "Enter crop width: ";
+    cin >> cropWidth;
+
+    cout << "Enter crop height: ";
+    cin >> cropHeight;
+
+    if (cin.fail()) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid input.\n";
+        continue;
+    }
+
+    if (cropImage(pixels, infoHeader,
+                  startRow, startCol,
+                  cropWidth, cropHeight)) {
+        cout << "Crop operation completed.\n";
+    }
+}
+else if (choice == 6) {
+    if (!imageLoaded) {
+        cout << "Load an image first.\n";
+        continue;
+    }
+
+    int rotationChoice;
+
+    cout << "\n1. Rotate 90 degrees clockwise\n";
+    cout << "2. Rotate 90 degrees anticlockwise\n";
+    cout << "3. Rotate 180 degrees\n";
+    cout << "Choose rotation: ";
+
+    if (!(cin >> rotationChoice)) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid input.\n";
+        continue;
+    }
+
+    rotateImage(pixels, infoHeader, rotationChoice);
+}
+ 
+        else if (choice == 7) {
             cout << "Region analysis is planned for Phase III.\n";
         }
-        else if (choice == 6) {
+        else if (choice == 8) {
             if (!imageLoaded) {
                 cout << "Load an image first.\n";
                 continue;

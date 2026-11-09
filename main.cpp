@@ -10,6 +10,7 @@
 #include "FilterPipeline.h"
 #include "UndoStack.h"
 #include "Threshold.h"
+#include "RegionAnalysis.h"
 
 using namespace std;
 

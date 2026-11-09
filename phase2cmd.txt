@@ -1,3 +1,1 @@
-First: g++ main.cpp BMPHandler.cpp brightnessfilter.cpp contrastfilter.cpp FilterPipeline.cpp Threshold.cpp UndoStack.cpp -o D:\test.exe
-
-Second: D:\test.exe
+g++ main.cpp BMPHandler.cpp brightnessfilter.cpp contrastfilter.cpp FilterPipeline.cpp Threshold.cpp UndoStack.cpp -o D:\test.exe && D:\test.exe

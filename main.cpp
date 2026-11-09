@@ -10,6 +10,7 @@
 #include "FilterPipeline.h"
 #include "UndoStack.h"
 #include "Threshold.h"
+#include "RegionAnalysis.h"
 
 using namespace std;
 
@@ -150,7 +151,7 @@ int main() {
 
         cout << "Invalid threshold. Enter a value from 0 to 255.\n";
         continue;
-    }
+        }
 
         undoStack.pushState(pixels);
 
@@ -158,9 +159,13 @@ int main() {
         thresholdFilter.apply(pixels);
 
          cout << "Thresholding applied successfully!\n";
-     }
+        }
         else if (choice == 5) {
-            cout << "Region analysis is planned for Phase III.\n";
+            if (!imageLoaded) {
+                cout << "Load and threshold an image first.\n";
+                continue;
+            }
+            analyzeRegions(pixels); // Calls your unified graph function
         }
         else if (choice == 6) {
             if (!imageLoaded) {

@@ -1,0 +1,1 @@
+g++ main.cpp BMPHandler.cpp brightnessfilter.cpp contrastfilter.cpp FilterPipeline.cpp Threshold.cpp UndoStack.cpp RegionAnalysis.cpp -o D:\app2.exe && D:\app2.exe

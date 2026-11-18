@@ -30,9 +30,9 @@ struct BMPInfoHeader{
 #pragma pack(pop)
 
 struct pixel{
-     unsigned char red;
      unsigned char blue;
      unsigned char green;
+     unsigned char red;
 };
 
 bool loadBMP(const std::string& filePath, std::vector<std::vector<pixel>>& pixels, BMPFileHeader& fileHeader,BMPInfoHeader& infoHeader);

@@ -145,42 +145,42 @@ int main() {
                cout << "Sepia filter applied successfully.\n";
               }
               else if (filterChoice == 5)
-{
-    int channelChoice;
+                {
+                    int channelChoice;
 
-    cout << "\n1. Red Channel\n";
-    cout << "2. Green Channel\n";
-    cout << "3. Blue Channel\n";
-    cout << "Choose channel: ";
+                    cout << "\n1. Red Channel\n";
+                    cout << "2. Green Channel\n";
+                    cout << "3. Blue Channel\n";
+                    cout << "Choose channel: ";
 
-    if (!(cin >> channelChoice) ||
-        channelChoice < 1 || channelChoice > 3)
-    {
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cout << "Invalid channel choice.\n";
-        continue;
-    }
+                    if (!(cin >> channelChoice) ||
+                        channelChoice < 1 || channelChoice > 3)
+                    {
+                        cin.clear();
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        cout << "Invalid channel choice.\n";
+                        continue;
+                    }
 
-    undoStack.pushState(pixels,infoHeader);
+                    undoStack.pushState(pixels,infoHeader);
 
-    Channel channel;
+                    Channel channel;
 
-    if (channelChoice == 1)
-        channel = Channel::Red;
-    else if (channelChoice == 2)
-        channel = Channel::Green;
-    else
-        channel = Channel::Blue;
+                    if (channelChoice == 1)
+                        channel = Channel::Red;
+                    else if (channelChoice == 2)
+                        channel = Channel::Green;
+                    else
+                        channel = Channel::Blue;
 
-    RGBFilter filter(channel);
-    FilterPipeline pipeline;
-    pipeline.addFilter(&filter);
-    pipeline.executePipeline(pixels);
+                    RGBFilter filter(channel);
+                    FilterPipeline pipeline;
+                    pipeline.addFilter(&filter);
+                    pipeline.executePipeline(pixels);
 
-    cout << "RGB channel applied successfully.\n";
-}
-    }
+                    cout << "RGB channel applied successfully.\n";
+                }
+        }
         else if (choice == 3) {
             if (!imageLoaded) {
                 cout << "Load an image first.\n";

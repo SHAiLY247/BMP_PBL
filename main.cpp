@@ -38,7 +38,7 @@ int main() {
         cout<< "2. Apply Filter\n";
         cout<< "3. Undo Last Operation\n";
         cout<< "4. Threshold Image\n";
-        cout<< "5. Crop Image\n ";
+        cout<< "5. Crop Image\n";
         cout<< "6. Rotate Image\n";
         cout<< "7. Pixel Region Analysis\n";
         cout<< "8. Save Image\n";

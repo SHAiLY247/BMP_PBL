@@ -10,6 +10,12 @@
 #include "FilterPipeline.h"
 #include "UndoStack.h"
 #include "Threshold.h"
+#include "CropRotate.h"
+#include "RequestQueue.h"
+#include "InversionFilter.h"
+#include "SepiaFilter.h"
+#include "RGBFilter.h"
+#include "RegionAnalysis.h"
 
 using namespace std;
 
@@ -18,24 +24,26 @@ int main() {
     BMPFileHeader fileHeader{};
     BMPInfoHeader infoHeader{};
     UndoStack undoStack(5);
-
+    RequestQueue requestQueue;
     bool imageLoaded = false;
     string filename;
 
     int choice;
 
     while (true) {
-        cout << "\n===============================================\n";
-        cout << "   BMP IMAGE PROCESSING AND PIXEL ANALYSIS\n";
-        cout << "===============================================\n";
-        cout << "1. Load BMP Image\n";
-        cout << "2. Apply Filter\n";
-        cout << "3. Undo Last Operation\n";
-        cout << "4. Threshold Image\n";
-        cout << "5. Analyze Pixel Regions (Phase III)\n";
-        cout << "6. Save Image\n";
-        cout << "7. Exit\n";
-        cout << "\nEnter your choice: ";
+        cout<< "\n===============================================\n";
+        cout<< "   BMP IMAGE PROCESSING AND PIXEL ANALYSIS\n";
+        cout<< "===============================================\n";
+        cout<< "1. Load BMP Image\n";
+        cout<< "2. Apply Filter\n";
+        cout<< "3. Undo Last Operation\n";
+        cout<< "4. Threshold Image\n";
+        cout<< "5. Crop Image\n ";
+        cout<< "6. Rotate Image\n";
+        cout<< "7. Pixel Region Analysis\n";
+        cout<< "8. Save Image\n";
+        cout<< "9. Exit\n";
+        cout<< "\nEnter your choice: ";
 
         if (!(cin >> choice)) {
             cin.clear();
@@ -44,7 +52,7 @@ int main() {
             continue;
         }
 
-        if (choice == 7) {
+        if (choice == 9) {
             cout << "Exiting program.\n";
             break;
         }
@@ -71,7 +79,10 @@ int main() {
 
             cout << "\n1. Brightness\n";
             cout << "2. Contrast\n";
-            cout << "3. Back\n";
+            cout << "3. Inversion\n";
+            cout << "4. Sepia\n";
+            cout << "5. RGB Channel\n";
+            cout << "6. Back\n";
             cout << "Choose filter: ";
 
             int filterChoice;
@@ -92,7 +103,7 @@ int main() {
                     continue;
                 }
 
-                undoStack.pushState(pixels);
+                undoStack.pushState(pixels,infoHeader);
                 BrightnessFilter filter(amount);
                 FilterPipeline pipeline;
                 pipeline.addFilter(&filter);
@@ -109,19 +120,72 @@ int main() {
                     continue;
                 }
 
-                undoStack.pushState(pixels);
+               undoStack.pushState(pixels, infoHeader);
                 ContrastFilter filter(factor);
                 FilterPipeline pipeline;
                 pipeline.addFilter(&filter);
                 pipeline.executePipeline(pixels);
                 cout << "Contrast applied.\n";
             }
-        }
+            else if (filterChoice == 3) {
+            undoStack.pushState(pixels, infoHeader);
+            InversionFilter filter;
+            FilterPipeline pipeline;
+            pipeline.addFilter(&filter);
+            pipeline.executePipeline(pixels);
+
+            cout << "Inversion applied successfully.\n";
+              }
+            else if (filterChoice == 4) {
+              undoStack.pushState(pixels, infoHeader);
+               SepiaFilter filter;
+               FilterPipeline pipeline;
+                pipeline.addFilter(&filter);
+                pipeline.executePipeline(pixels); 
+               cout << "Sepia filter applied successfully.\n";
+              }
+              else if (filterChoice == 5)
+{
+    int channelChoice;
+
+    cout << "\n1. Red Channel\n";
+    cout << "2. Green Channel\n";
+    cout << "3. Blue Channel\n";
+    cout << "Choose channel: ";
+
+    if (!(cin >> channelChoice) ||
+        channelChoice < 1 || channelChoice > 3)
+    {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid channel choice.\n";
+        continue;
+    }
+
+    undoStack.pushState(pixels,infoHeader);
+
+    Channel channel;
+
+    if (channelChoice == 1)
+        channel = Channel::Red;
+    else if (channelChoice == 2)
+        channel = Channel::Green;
+    else
+        channel = Channel::Blue;
+
+    RGBFilter filter(channel);
+    FilterPipeline pipeline;
+    pipeline.addFilter(&filter);
+    pipeline.executePipeline(pixels);
+
+    cout << "RGB channel applied successfully.\n";
+}
+    }
         else if (choice == 3) {
             if (!imageLoaded) {
                 cout << "Load an image first.\n";
             }
-            else if (undoStack.popState(pixels)) {
+            else if (undoStack.popState(pixels,infoHeader)) {
                 cout << "Undo successful.\n";
             }
             else {
@@ -152,7 +216,7 @@ int main() {
         continue;
     }
 
-        undoStack.pushState(pixels);
+        undoStack.pushState(pixels, infoHeader);
 
         Threshold thresholdFilter(thresholdValue);
         thresholdFilter.apply(pixels);
@@ -160,9 +224,82 @@ int main() {
          cout << "Thresholding applied successfully!\n";
      }
         else if (choice == 5) {
-            cout << "Region analysis is planned for Phase III.\n";
+    if (!imageLoaded) {
+        cout << "Load an image first.\n";
+        continue;
+    }
+
+    int startRow, startCol, cropWidth, cropHeight;
+
+    cout << "Enter starting row: ";
+    cin >> startRow;
+
+    cout << "Enter starting column: ";
+    cin >> startCol;
+
+    cout << "Enter crop width: ";
+    cin >> cropWidth;
+
+    cout << "Enter crop height: ";
+    cin >> cropHeight;
+
+    if (cin.fail()) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid input.\n";
+        continue;
+    }
+
+    vector<vector<pixel>> oldPixels = pixels;
+BMPInfoHeader oldInfoHeader = infoHeader;
+
+if (cropImage(pixels, infoHeader,
+              startRow, startCol,
+              cropWidth, cropHeight)) {
+
+    undoStack.pushState(oldPixels, oldInfoHeader);
+
+    cout << "Crop operation completed.\n";
+}
+}
+else if (choice == 6) {
+    if (!imageLoaded) {
+        cout << "Load an image first.\n";
+        continue;
+    }
+
+    int rotationChoice;
+
+    cout << "\n1. Rotate 90 degrees clockwise\n";
+    cout << "2. Rotate 90 degrees anticlockwise\n";
+    cout << "3. Rotate 180 degrees\n";
+    cout << "Choose rotation: ";
+
+    if (!(cin >> rotationChoice)) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid input.\n";
+        continue;
+    }
+
+   vector<vector<pixel>> oldPixels = pixels;
+BMPInfoHeader oldInfoHeader = infoHeader;
+
+if (rotateImage(pixels, infoHeader, rotationChoice)) {
+
+    undoStack.pushState(oldPixels, oldInfoHeader);
+}
+}
+ 
+        else if (choice == 7) {
+            if (!imageLoaded) {
+        cout << "Load an image first.\n";
+        continue;
+    }
+
+    analyzeRegions(pixels);
         }
-        else if (choice == 6) {
+        else if (choice == 8) {
             if (!imageLoaded) {
                 cout << "Load an image first.\n";
                 continue;

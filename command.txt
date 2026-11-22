@@ -2,4 +2,4 @@ Normal:-
 g++ main.cpp BMPHandler.cpp brightnessfilter.cpp contrastfilter.cpp CropRotate.cpp FilterPipeline.cpp InversionFilter.cpp RegionAnalysis.cpp RequestQueue.cpp RGBFilter.cpp SepiaFilter.cpp Threshold.cpp UndoStack.cpp -o app.exe && app.exe
 
 If windows defender prevents first one then-:
-g++ main.cpp BMPHandler.cpp brightnessfilter.cpp contrastfilter.cpp CropRotate.cpp FilterPipeline.cpp InversionFilter.cpp RegionAnalysis.cpp RequestQueue.cpp RGBFilter.cpp SepiaFilter.cpp Threshold.cpp UndoStack.cpp -o D:\app.exe && D:\app.exe
+g++ main.cpp BMPHandler.cpp grayscalefilter.cpp brightnessfilter.cpp contrastfilter.cpp CropRotate.cpp FilterPipeline.cpp InversionFilter.cpp RegionAnalysis.cpp RequestQueue.cpp RGBFilter.cpp SepiaFilter.cpp Threshold.cpp UndoStack.cpp -o D:\app.exe && D:\app.exe

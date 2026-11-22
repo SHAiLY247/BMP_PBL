@@ -16,6 +16,7 @@
 #include "InversionFilter.h"
 #include "SepiaFilter.h"
 #include "RGBFilter.h"
+#include "grayscalefilter.h"
 #include "RegionAnalysis.h"
 
 using namespace std;
@@ -68,7 +69,8 @@ int main() {
                 cout << "BMP loaded successfully!\n";
                 cout << "Width: " << infoHeader.width
                      << ", Height: " << abs(infoHeader.height) << '\n';
-            } else {
+            }
+            else {
                 cout << "Could not load BMP. Check filename and format.\n";
             }
         }
@@ -83,7 +85,8 @@ int main() {
             cout << "3. Inversion\n";
             cout << "4. Sepia\n";
             cout << "5. RGB Channel\n";
-            cout << "6. Back\n";
+            cout << "6. Grayscale\n";
+            cout << "7. Back\n";
             cout << "Choose filter: ";
 
             int filterChoice;
@@ -162,19 +165,32 @@ int main() {
                 undoStack.pushState(pixels, infoHeader);
 
                 Channel channel;
-                if (channelChoice == 1)
+                if (channelChoice == 1) {
                     channel = Channel::Red;
-                else if (channelChoice == 2)
+                }
+                else if (channelChoice == 2) {
                     channel = Channel::Green;
-                else
+                }
+                else {
                     channel = Channel::Blue;
+                }
 
                 RGBFilter filter(channel);
                 FilterPipeline pipeline;
                 pipeline.addFilter(&filter);
                 pipeline.executePipeline(pixels);
-
                 cout << "RGB channel applied successfully.\n";
+            }
+            else if (filterChoice == 6) {
+                undoStack.pushState(pixels, infoHeader);
+                GrayscaleFilter filter;
+                FilterPipeline pipeline;
+                pipeline.addFilter(&filter);
+                pipeline.executePipeline(pixels);
+                cout << "Grayscale filter applied successfully.\n";
+            }
+            else if (filterChoice != 7) {
+                cout << "Invalid filter choice.\n";
             }
         }
         else if (choice == 3) {
@@ -377,7 +393,8 @@ int main() {
 
             if (saveBMP(output, pixels, fileHeader, infoHeader)) {
                 cout << "Image saved to " << output << '\n';
-            } else {
+            }
+            else {
                 cout << "Failed to save image.\n";
             }
         }

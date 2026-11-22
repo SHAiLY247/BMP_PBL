@@ -21,6 +21,244 @@
 
 using namespace std;
 
+void enqueueBatchJob(RequestQueue& requestQueue) {
+    ProcessingJob job;
+
+    cout << "\n--- ADD BATCH JOB (ENQUEUE) ---\n";
+    cout << "Enter input BMP filename (e.g. input.bmp): ";
+    cin >> job.inputPath;
+    cout << "Enter output BMP filename (e.g. batch_out.bmp): ";
+    cin >> job.outputPath;
+
+    while (true) {
+        cout << "\nAdd an operation to this job:\n";
+        cout << "1. Brightness\n";
+        cout << "2. Contrast\n";
+        cout << "3. Inversion\n";
+        cout << "4. Sepia\n";
+        cout << "5. RGB Channel\n";
+        cout << "6. Grayscale\n";
+        cout << "7. Threshold\n";
+        cout << "8. Crop (Exact Coordinates)\n";
+        cout << "9. Rotate\n";
+        cout << "0. Finish & Enqueue Job\n";
+        cout << "Choose operation: ";
+
+        int opChoice;
+        if (!(cin >> opChoice)) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Invalid input.\n";
+            continue;
+        }
+
+        if (opChoice == 0) {
+            break;
+        }
+
+        ProcessingOperation op;
+
+        if (opChoice == 1) {
+            cout << "Brightness amount (-255 to 255): ";
+            if (!(cin >> op.intValue) || op.intValue < -255 || op.intValue > 255) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid brightness amount.\n";
+                continue;
+            }
+            op.type = OperationType::Brightness;
+        }
+        else if (opChoice == 2) {
+            cout << "Contrast factor (0 < factor <= 10): ";
+            if (!(cin >> op.doubleValue) || op.doubleValue < 0 || op.doubleValue > 10) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid contrast factor.\n";
+                continue;
+            }
+            op.type = OperationType::Contrast;
+        }
+        else if (opChoice == 3) {
+            op.type = OperationType::Inversion;
+        }
+        else if (opChoice == 4) {
+            op.type = OperationType::Sepia;
+        }
+        else if (opChoice == 5) {
+            cout << "Channel (1. Red, 2. Green, 3. Blue): ";
+            if (!(cin >> op.channel) || op.channel < 1 || op.channel > 3) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid channel choice.\n";
+                continue;
+            }
+            op.type = OperationType::RGB;
+        }
+        else if (opChoice == 6) {
+            op.type = OperationType::Grayscale;
+        }
+        else if (opChoice == 7) {
+            cout << "Threshold value (0-255): ";
+            if (!(cin >> op.intValue) || op.intValue < 0 || op.intValue > 255) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid threshold value.\n";
+                continue;
+            }
+            op.type = OperationType::Threshold;
+        }
+        else if (opChoice == 8) {
+            cout << "Start X (column): ";
+            cin >> op.startCol;
+            cout << "Start Y (row): ";
+            cin >> op.startRow;
+            cout << "Crop width: ";
+            cin >> op.cropWidth;
+            cout << "Crop height: ";
+            cin >> op.cropHeight;
+            if (cin.fail()) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid crop values.\n";
+                continue;
+            }
+            op.type = OperationType::Crop;
+        }
+        else if (opChoice == 9) {
+            cout << "Rotation (1. 90 CW, 2. 90 CCW, 3. 180): ";
+            if (!(cin >> op.rotationChoice) || op.rotationChoice < 1 || op.rotationChoice > 3) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid rotation choice.\n";
+                continue;
+            }
+            op.type = OperationType::Rotate;
+        }
+        else {
+            cout << "Invalid operation choice.\n";
+            continue;
+        }
+
+        job.operations.push_back(op);
+        cout << "Operation added to job (total queued operations: "
+             << job.operations.size() << ").\n";
+    }
+
+    if (job.operations.empty()) {
+        cout << "No operations added. Job discarded.\n";
+        return;
+    }
+
+    requestQueue.enqueue(job);
+    cout << "Job enqueued successfully: " << job.inputPath
+         << " -> " << job.outputPath << '\n';
+}
+
+void processBatchQueue(RequestQueue& requestQueue) {
+    if (requestQueue.isEmpty()) {
+        cout << "Request queue is empty. Add a job first.\n";
+        return;
+    }
+
+    ProcessingJob job;
+    int jobNumber = 1;
+
+    cout << "\n--- PROCESSING REQUEST QUEUE (FIFO) ---\n";
+    while (requestQueue.dequeue(job)) {
+        cout << "\n[Job " << jobNumber << "] Loading " << job.inputPath << "...\n";
+
+        vector<vector<pixel>> batchPixels;
+        BMPFileHeader batchFileHeader{};
+        BMPInfoHeader batchInfoHeader{};
+
+        if (!loadBMP(job.inputPath, batchPixels, batchFileHeader, batchInfoHeader)) {
+            cout << "[Job " << jobNumber << "] Failed: Could not load " << job.inputPath << '\n';
+            jobNumber++;
+            continue;
+        }
+
+        for (const ProcessingOperation& op : job.operations) {
+            switch (op.type) {
+                case OperationType::Brightness: {
+                    BrightnessFilter filter(op.intValue);
+                    FilterPipeline pipeline;
+                    pipeline.addFilter(&filter);
+                    pipeline.executePipeline(batchPixels);
+                    break;
+                }
+                case OperationType::Contrast: {
+                    ContrastFilter filter(op.doubleValue);
+                    FilterPipeline pipeline;
+                    pipeline.addFilter(&filter);
+                    pipeline.executePipeline(batchPixels);
+                    break;
+                }
+                case OperationType::Inversion: {
+                    InversionFilter filter;
+                    FilterPipeline pipeline;
+                    pipeline.addFilter(&filter);
+                    pipeline.executePipeline(batchPixels);
+                    break;
+                }
+                case OperationType::Sepia: {
+                    SepiaFilter filter;
+                    FilterPipeline pipeline;
+                    pipeline.addFilter(&filter);
+                    pipeline.executePipeline(batchPixels);
+                    break;
+                }
+                case OperationType::Grayscale: {
+                    GrayscaleFilter filter;
+                    FilterPipeline pipeline;
+                    pipeline.addFilter(&filter);
+                    pipeline.executePipeline(batchPixels);
+                    break;
+                }
+                case OperationType::RGB: {
+                    Channel channel = Channel::Red;
+                    if (op.channel == 2) channel = Channel::Green;
+                    else if (op.channel == 3) channel = Channel::Blue;
+
+                    RGBFilter filter(channel);
+                    FilterPipeline pipeline;
+                    pipeline.addFilter(&filter);
+                    pipeline.executePipeline(batchPixels);
+                    break;
+                }
+                case OperationType::Threshold: {
+                    Threshold thresholdFilter(op.intValue);
+                    thresholdFilter.apply(batchPixels);
+                    break;
+                }
+                case OperationType::Crop: {
+                    if (!cropImage(batchPixels, batchInfoHeader,
+                                   op.startRow, op.startCol, op.cropWidth, op.cropHeight)) {
+                        cout << "  Warning: Crop out of bounds, skipped.\n";
+                    }
+                    break;
+                }
+                case OperationType::Rotate: {
+                    if (!rotateImage(batchPixels, batchInfoHeader, op.rotationChoice)) {
+                        cout << "  Warning: Invalid rotation, skipped.\n";
+                    }
+                    break;
+                }
+            }
+        }
+
+        if (saveBMP(job.outputPath, batchPixels, batchFileHeader, batchInfoHeader)) {
+            cout << "[Job " << jobNumber << "] Completed! Saved to " << job.outputPath << '\n';
+        }
+        else {
+            cout << "[Job " << jobNumber << "] Failed to save " << job.outputPath << '\n';
+        }
+
+        jobNumber++;
+    }
+
+    cout << "\nAll queued batch jobs processed.\n";
+}
+
 int main() {
     vector<vector<pixel>> pixels;
     BMPFileHeader fileHeader{};
@@ -44,7 +282,8 @@ int main() {
         cout << "6. Rotate Image\n";
         cout << "7. Pixel Region Analysis\n";
         cout << "8. Save Image\n";
-        cout << "9. Exit\n";
+        cout << "9. Batch Processing (Request Queue)\n";
+        cout << "10. Exit\n";
         cout << "\nEnter your choice: ";
 
         if (!(cin >> choice)) {
@@ -54,7 +293,7 @@ int main() {
             continue;
         }
 
-        if (choice == 9) {
+        if (choice == 10) {
             cout << "Exiting program.\n";
             break;
         }
@@ -396,6 +635,36 @@ int main() {
             }
             else {
                 cout << "Failed to save image.\n";
+            }
+        }
+        else if (choice == 9) {
+            cout << "\n--- BATCH PROCESSING (REQUEST QUEUE) ---\n";
+            cout << "1. Add Batch Job (Enqueue)\n";
+            cout << "2. Process All Queued Jobs (Dequeue FIFO)\n";
+            cout << "3. Clear Request Queue\n";
+            cout << "4. Back\n";
+            cout << "Choose option: ";
+
+            int batchChoice;
+            if (!(cin >> batchChoice)) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid input.\n";
+                continue;
+            }
+
+            if (batchChoice == 1) {
+                enqueueBatchJob(requestQueue);
+            }
+            else if (batchChoice == 2) {
+                processBatchQueue(requestQueue);
+            }
+            else if (batchChoice == 3) {
+                requestQueue.clear();
+                cout << "Request queue cleared.\n";
+            }
+            else if (batchChoice != 4) {
+                cout << "Invalid batch option.\n";
             }
         }
         else {
